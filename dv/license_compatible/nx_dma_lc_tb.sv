@@ -584,6 +584,137 @@ module nx_dma_lc_tb;
     t_direct_copy("cross_4kb_corner", 0, 32'h0000_FFF0, 32'h0008_FFF0, 64, 3'd4, 8'hE9);
   endtask
 
+  task automatic t_multi_channel_concurrency();
+    logic [31:0] st0, st1, st2, st3;
+    current_test = "multi_channel_concurrency";
+    sw_reset_ch(0); sw_reset_ch(1); sw_reset_ch(2); sw_reset_ch(3);
+    prep_buf(32'h0002_1000, 32'h0009_1000, 64, 8'h11);
+    prep_buf(32'h0002_2000, 32'h0009_2000, 64, 8'h22);
+    prep_buf(32'h0002_3000, 32'h0009_3000, 64, 8'h33);
+    prep_buf(32'h0002_4000, 32'h0009_4000, 64, 8'h44);
+    enable_irq(0); enable_irq(1); enable_irq(2); enable_irq(3);
+    program_direct(0, 32'h0002_1000, 32'h0009_1000, 64, 3'd2);
+    program_direct(1, 32'h0002_2000, 32'h0009_2000, 64, 3'd2);
+    program_direct(2, 32'h0002_3000, 32'h0009_3000, 64, 3'd2);
+    program_direct(3, 32'h0002_4000, 32'h0009_4000, 64, 3'd2);
+    fork
+      poll_ch(0, 20000, st0);
+      poll_ch(1, 20000, st1);
+      poll_ch(2, 20000, st2);
+      poll_ch(3, 20000, st3);
+    join
+    bfm.wait_clk(20);
+    check(st0[3], $sformatf("CH0 done status=0x%08x", st0));
+    check(st1[3], $sformatf("CH1 done status=0x%08x", st1));
+    check(st2[3], $sformatf("CH2 done status=0x%08x", st2));
+    check(st3[3], $sformatf("CH3 done status=0x%08x", st3));
+    check_copy(32'h0002_1000, 32'h0009_1000, 64);
+    check_copy(32'h0002_2000, 32'h0009_2000, 64);
+    check_copy(32'h0002_3000, 32'h0009_3000, 64);
+    check_copy(32'h0002_4000, 32'h0009_4000, 64);
+    clear_irq(0); clear_irq(1); clear_irq(2); clear_irq(3);
+  endtask
+
+  task automatic t_error_recovery_restart();
+    logic [31:0] st, err;
+    current_test = "error_recovery_restart";
+    // Phase 1: Trigger error on CH0
+    sw_reset_ch(0);
+    prep_buf(32'h0002_6000, 32'h0009_6000, 32, 8'hAA);
+    u_mem.mem.set_err_range(32'h0002_6000, 32'h0002_601F, AXI_RESP_SLVERR, 1'b1, 1'b0);
+    enable_irq(0);
+    program_direct(0, 32'h0002_6000, 32'h0009_6000, 32, 3'd1);
+    poll_ch(0, 10000, st);
+    check(st[4] == 1'b1, $sformatf("Initial error caught status=0x%08x", st));
+    bfm.rd(lc_ch_addr(0, CH_OFFSET_ERROR_STATUS), err);
+    check(err[3:0] == ERR_AXI_SLVERR_RD, $sformatf("Error code expected SLVERR got=0x%08x", err));
+    u_mem.mem.clear_err();
+    clear_irq(0);
+
+    // Phase 2: Recover and restart CH0 with a successful transfer
+    sw_reset_ch(0);
+    prep_buf(32'h0002_7000, 32'h0009_7000, 32, 8'h55);
+    enable_irq(0);
+    program_direct(0, 32'h0002_7000, 32'h0009_7000, 32, 3'd1);
+    poll_ch(0, 10000, st);
+    check(st[3] == 1'b1, $sformatf("Recovery transfer done status=0x%08x", st));
+    check(st[4] == 1'b0, $sformatf("Recovery transfer no error status=0x%08x", st));
+    check_copy(32'h0002_7000, 32'h0009_7000, 32);
+    clear_irq(0);
+  endtask
+
+  task automatic t_multi_channel_concurrency_stress();
+    logic [31:0] st0, st1, st2, st3;
+    current_test = "multi_channel_concurrency_stress";
+    u_mem.set_stalls(2, 3, 2, 3, 4); // ar, r, aw, w, b stalls
+    sw_reset_ch(0); sw_reset_ch(1); sw_reset_ch(2); sw_reset_ch(3);
+    prep_buf(32'h0003_1000, 32'h000A_1000, 64, 8'hA1);
+    prep_buf(32'h0003_2000, 32'h000A_2000, 64, 8'hA2);
+    prep_buf(32'h0003_3000, 32'h000A_3000, 64, 8'hA3);
+    prep_buf(32'h0003_4000, 32'h000A_4000, 64, 8'hA4);
+    enable_irq(0); enable_irq(1); enable_irq(2); enable_irq(3);
+    program_direct(0, 32'h0003_1000, 32'h000A_1000, 64, 3'd2);
+    program_direct(1, 32'h0003_2000, 32'h000A_2000, 64, 3'd2);
+    program_direct(2, 32'h0003_3000, 32'h000A_3000, 64, 3'd2);
+    program_direct(3, 32'h0003_4000, 32'h000A_4000, 64, 3'd2);
+    fork
+      poll_ch(0, 40000, st0);
+      poll_ch(1, 40000, st1);
+      poll_ch(2, 40000, st2);
+      poll_ch(3, 40000, st3);
+    join
+    bfm.wait_clk(100);
+    check(st0[3], $sformatf("CH0 done status=0x%08x", st0));
+    check(st1[3], $sformatf("CH1 done status=0x%08x", st1));
+    check(st2[3], $sformatf("CH2 done status=0x%08x", st2));
+    check(st3[3], $sformatf("CH3 done status=0x%08x", st3));
+    check(st0[4] == 1'b0, "CH0 no error");
+    check(st1[4] == 1'b0, "CH1 no error");
+    check(st2[4] == 1'b0, "CH2 no error");
+    check(st3[4] == 1'b0, "CH3 no error");
+    check_copy(32'h0003_1000, 32'h000A_1000, 64);
+    check_copy(32'h0003_2000, 32'h000A_2000, 64);
+    check_copy(32'h0003_3000, 32'h000A_3000, 64);
+    check_copy(32'h0003_4000, 32'h000A_4000, 64);
+    clear_irq(0); clear_irq(1); clear_irq(2); clear_irq(3);
+    u_mem.set_always_ready();
+  endtask
+
+  task automatic t_error_interrupt_assertion();
+    logic [31:0] st, err, istat, gstat;
+    current_test = "error_interrupt_assertion";
+    sw_reset_ch(0);
+    prep_buf(32'h0002_8000, 32'h0009_8000, 32, 8'hEE);
+    u_mem.mem.set_err_range(32'h0002_8000, 32'h0002_801F, AXI_RESP_SLVERR, 1'b1, 1'b0);
+    enable_irq(0);
+    bfm.wr(lc_ch_addr(0, CH_OFFSET_INT_ENABLE), 32'h5); // xfer_done and err ie
+    bfm.wr(ADDR_GLOBAL_IRQ_ENABLE, 32'hF);
+    program_direct(0, 32'h0002_8000, 32'h0009_8000, 32, 3'd1);
+    poll_ch(0, 10000, st);
+    check(st[4] == 1'b1, $sformatf("SLVERR error caught status=0x%08x", st));
+    check(irq_if.irq === 1'b1, "Top-level IRQ asserted on SLVERR");
+    check(irq_if.irq_ch[0] === 1'b1, "CH0 IRQ asserted on SLVERR");
+    bfm.rd(lc_ch_addr(0, CH_OFFSET_ERROR_STATUS), err);
+    check(err[3:0] == ERR_AXI_SLVERR_RD, $sformatf("Error code expected SLVERR got=0x%08x", err));
+    bfm.rd(lc_ch_addr(0, CH_OFFSET_INT_STATUS), istat);
+    check(istat[2] == 1'b1, $sformatf("Interrupt status err_ie bit set=0x%08x", istat));
+    bfm.rd(ADDR_GLOBAL_IRQ_STATUS, gstat);
+    check(gstat[0] == 1'b1, $sformatf("Global IRQ status ch0 set=0x%08x", gstat));
+    u_mem.mem.clear_err();
+    clear_irq(0);
+
+    // Verify recovery via channel software reset and subsequent successful transfer
+    sw_reset_ch(0);
+    prep_buf(32'h0002_9000, 32'h0009_9000, 32, 8'hFF);
+    enable_irq(0);
+    program_direct(0, 32'h0002_9000, 32'h0009_9000, 32, 3'd1);
+    poll_ch(0, 10000, st);
+    check(st[3] == 1'b1, $sformatf("Recovery post-reset done status=0x%08x", st));
+    check(st[4] == 1'b0, $sformatf("Recovery post-reset no error status=0x%08x", st));
+    check_copy(32'h0002_9000, 32'h0009_9000, 32);
+    clear_irq(0);
+  endtask
+
   task automatic run_one(string name);
     case (name)
       "reset_regs":         t_reset_regs();
@@ -609,6 +740,10 @@ module nx_dma_lc_tb;
       "sg_deep":            t_sg_deep();
       "abort_race":         t_abort_race();
       "cross_4kb_corner":   t_cross_4kb_corner();
+      "multi_channel_concurrency": t_multi_channel_concurrency();
+      "error_recovery_restart":    t_error_recovery_restart();
+      "multi_channel_concurrency_stress": t_multi_channel_concurrency_stress();
+      "error_interrupt_assertion":        t_error_interrupt_assertion();
       default: begin
         $error("[LC] unknown test %s", name);
         fail_count++;
@@ -655,6 +790,10 @@ module nx_dma_lc_tb;
       run_one("sg_deep");
       run_one("abort_race");
       run_one("cross_4kb_corner");
+      run_one("multi_channel_concurrency");
+      run_one("error_recovery_restart");
+      run_one("multi_channel_concurrency_stress");
+      run_one("error_interrupt_assertion");
     end else begin
       run_one(sel);
     end

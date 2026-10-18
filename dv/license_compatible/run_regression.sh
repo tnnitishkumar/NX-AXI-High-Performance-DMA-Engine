@@ -38,6 +38,10 @@ TESTS=(
   sg_deep
   abort_race
   cross_4kb_corner
+  multi_channel_concurrency
+  error_recovery_restart
+  multi_channel_concurrency_stress
+  error_interrupt_assertion
 )
 
 if [[ "${1:-}" != "" && "${1:-}" != "all" ]]; then
