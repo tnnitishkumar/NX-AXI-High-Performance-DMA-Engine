@@ -1,0 +1,44 @@
+# Simulator temporary files and databases
+work/
+work_*/
+*.wlf
+transcript
+*.vstf
+*.log
+*.ucdb
+covhtmlreport/
+*.vcd
+*.fsdb
+*.vpd
+sim/build/
+sim/run/
+sim/cov_html/
+sim/work/
+
+# Questa / ModelSim
+vsim.wlf
+vish_stacktrace.vstf
+modelsim.ini
+*.mpf
+
+# Quartus / Synthesis artifacts
+synth/output_files/
+synth/db/
+synth/incremental_db/
+synth/*.rpt
+synth/*.summary
+synth/*.sof
+synth/*.qsf
+synth/*.qpf
+synth/*.fit.*
+synth/*.eda.*
+synth/*.map.*
+synth/*.syn.*
+*.qws
+
+# OS / Editor files
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/

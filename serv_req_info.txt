@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<internal_error>
+	<sub_system>ERR</sub_system>
+	<callstack>	   0x405806: quartus_map + 0x405806 (_Z9qsyn_mainiPPKc + 0x7f6)
+	0x7de4cdd26e4e: ccl_msg + 0x44e4e (_Z15msg_main_threadPv + 0x10)
+	0x7de4cdd288fb: ccl_msg + 0x468fb (_Z18msg_thread_wrapperPFPvS_ES_ + 0x8c)
+	0x7de4ce53375d: ccl_mem + 0x1375d (_Z18mem_thread_wrapperPFPvS_ES_ + 0x9d)
+	0x7de4b0c0d2c8: ccl_err + 0xe2c8 (_Z18err_thread_wrapperPFPvS_ES_ + 0x1e)
+	0x7de4cdd27648: ccl_msg + 0x45648 (_Z12msg_exe_mainiPPKcPFiiS1_E + 0xc2)
+	0x7de4c822a1ca: c + 0x2a1ca
+	0x7de4c822a28b: c + 0x2a28b (__libc_start_main + 0x8b)
+	   0x40437a: quartus_map + 0x40437a (_start + 0x2a)
+</callstack>
+	<error>*** Fatal Error: Command quartus_map is no longer supported. Please use quartus_syn.</error>
+	<date>Sun Oct 18 08:39:51 2026
+</date>
+	<version>Version 26.1.1 Build 130 08/06/2026 SC Pro Edition</version>
+</internal_error>
