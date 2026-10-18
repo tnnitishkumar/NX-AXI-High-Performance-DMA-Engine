@@ -1,0 +1,21 @@
+-incdir ../interfaces
+../interfaces/nx_dma_axil_if.sv
+../interfaces/nx_dma_axi_if.sv
+../interfaces/nx_dma_irq_if.sv
+../../rtl/nx_dma_pkg.sv
+nx_dma_lc_pkg.sv
+nx_dma_lc_axi_mem.sv
+../../rtl/nx_dma_axi_lite_slave.sv
+../../rtl/nx_dma_transaction_tracker.sv
+../../rtl/nx_dma_data_buffer.sv
+../../rtl/nx_dma_channel.sv
+../../rtl/nx_dma_scheduler.sv
+../../rtl/nx_dma_axi_read_engine.sv
+../../rtl/nx_dma_axi_write_engine.sv
+../../rtl/nx_dma_descriptor_engine.sv
+../../rtl/nx_dma_interrupt.sv
+../../rtl/nx_dma_error_handler.sv
+../../rtl/nx_dma_reg_file.sv
+../../rtl/nx_dma_top.sv
+../assertions/nx_dma_sva.sv
+nx_dma_lc_tb.sv

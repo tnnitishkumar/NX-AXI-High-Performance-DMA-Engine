@@ -1,0 +1,30 @@
+# ==============================================================================
+# Project: NX-AXI High-Performance DMA Engine Synthesis Project
+# Quartus Prime Pro Edition 26.1.1
+# ==============================================================================
+
+set_global_assignment -name FAMILY "Stratix 10"
+set_global_assignment -name TOP_LEVEL_ENTITY nx_dma_top
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 26.1.1
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "00:00:00 OCTOBER 18, 2026"
+set_global_assignment -name LAST_QUARTUS_VERSION "26.1.1 Pro Edition"
+
+# Synthesizable RTL Source Files (Package-Safe Order)
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_axi_lite_slave.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_transaction_tracker.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_data_buffer.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_channel.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_scheduler.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_axi_read_engine.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_axi_write_engine.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_descriptor_engine.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_interrupt.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_error_handler.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_reg_file.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/nx_dma_top.sv
+
+# Timing Constraints SDC
+set_global_assignment -name SDC_FILE nx_dma_synthesis.sdc
+set_global_assignment -name PWRMGT_VOLTAGE_OUTPUT_FORMAT "LINEAR FORMAT"
+set_global_assignment -name PWRMGT_LINEAR_FORMAT_N "-12"
